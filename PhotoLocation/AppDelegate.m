@@ -8,7 +8,7 @@
 
 #import "AppDelegate.h"
 
-#import "MasterViewController.h"
+#import "PhotoManageController.h"
 
 @implementation AppDelegate
 
@@ -21,11 +21,14 @@
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
 
-    MasterViewController *masterViewController = [[MasterViewController alloc] initWithNibName:@"MasterViewController" bundle:nil];
+    PhotoManageController *masterViewController = [[PhotoManageController alloc] initWithNibName:@"PhotoManageController" bundle:nil];
     self.navigationController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
     masterViewController.managedObjectContext = self.managedObjectContext;
     self.window.rootViewController = self.navigationController;
     [self.window makeKeyAndVisible];
+    
+    [self checkingPhotoStorageRootPath];
+    
     return YES;
 }
 
@@ -68,6 +71,21 @@
             NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
             abort();
         } 
+    }
+}
+
+#pragma mark - Image Storage 
+
+- (void)checkingPhotoStorageRootPath
+{
+    NSLog(@"ImageBox path: %@", IMAGE_BOX_PATH);
+    if (![[NSFileManager defaultManager] fileExistsAtPath:IMAGE_BOX_PATH])
+    {
+        NSLog(@"ImageBox directory is not exist, then create it.");
+        [[NSFileManager defaultManager] createDirectoryAtPath:IMAGE_BOX_PATH
+                                  withIntermediateDirectories:NO
+                                                   attributes:nil
+                                                        error:NULL];
     }
 }
 
