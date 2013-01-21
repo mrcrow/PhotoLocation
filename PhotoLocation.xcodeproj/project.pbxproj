@@ -348,9 +348,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E88BE30816AAF98A0065186B /* PhotoLocation */ = {
+		E88BE30816AAF98A0065186B /* GeoPhoto */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E88BE33816AAF9940065186B /* Build configuration list for PBXNativeTarget "PhotoLocation" */;
+			buildConfigurationList = E88BE33816AAF9940065186B /* Build configuration list for PBXNativeTarget "GeoPhoto" */;
 			buildPhases = (
 				E88BE30516AAF98A0065186B /* Sources */,
 				E88BE30616AAF98A0065186B /* Frameworks */,
@@ -360,7 +360,7 @@
 			);
 			dependencies = (
 			);
-			name = PhotoLocation;
+			name = GeoPhoto;
 			productName = PhotoLocation;
 			productReference = E88BE30916AAF98A0065186B /* PhotoLocation.app */;
 			productType = "com.apple.product-type.application";
@@ -386,7 +386,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E88BE30816AAF98A0065186B /* PhotoLocation */,
+				E88BE30816AAF98A0065186B /* GeoPhoto */,
 			);
 		};
 /* End PBXProject section */
@@ -543,7 +543,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E88BE33816AAF9940065186B /* Build configuration list for PBXNativeTarget "PhotoLocation" */ = {
+		E88BE33816AAF9940065186B /* Build configuration list for PBXNativeTarget "GeoPhoto" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E88BE33916AAF9940065186B /* Debug */,
