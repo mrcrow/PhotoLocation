@@ -8,7 +8,7 @@
 
 #import "AppDelegate.h"
 
-#import "PhotoManageController.h"
+#import "PhotoListController.h"
 
 @implementation AppDelegate
 
@@ -21,7 +21,7 @@
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
 
-    PhotoManageController *masterViewController = [[PhotoManageController alloc] initWithNibName:@"PhotoManageController" bundle:nil];
+    PhotoListController *masterViewController = [[PhotoListController alloc] initWithNibName:@"PhotoListController" bundle:nil];
     self.navigationController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
     masterViewController.managedObjectContext = self.managedObjectContext;
     self.window.rootViewController = self.navigationController;

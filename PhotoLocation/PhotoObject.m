@@ -2,7 +2,7 @@
 //  PhotoObject.m
 //  PhotoLocation
 //
-//  Created by Wu Wenzhi on 13-1-20.
+//  Created by Wu Wenzhi on 13-1-21.
 //  Copyright (c) 2013年 Wu Wenzhi. All rights reserved.
 //
 
@@ -11,15 +11,15 @@
 
 @implementation PhotoObject
 
-@dynamic timeStamp;
-@dynamic name;
+@dynamic comment;
 @dynamic date;
+@dynamic hasLocation;
+@dynamic hasPhoto;
 @dynamic latitude;
 @dynamic longitude;
-@dynamic hasPhoto;
-@dynamic hasLocation;
+@dynamic name;
 @dynamic photoPath;
 @dynamic storagePath;
-@dynamic comment;
+@dynamic timeStamp;
 
 @end

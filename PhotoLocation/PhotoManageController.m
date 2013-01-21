@@ -15,6 +15,7 @@
 @property (strong, nonatomic)   UITextField             *nameField;
 @property (strong, nonatomic)   UITextView              *commentView;
 
+@property (strong, nonatomic)   NSMutableArray          *previewPhoto;
 @property                       BOOL                    newMedia;
 
 @property (strong, nonatomic)   UIActionSheet           *imageSelectionSheet;
@@ -25,9 +26,10 @@
 @implementation PhotoManageController
 @synthesize managedObjectContext = _managedObjectContext;
 @synthesize nameField = _nameField, commentView = _commentView;
-@synthesize content = _content;
+@synthesize photo = _photo;
 @synthesize newMedia, previewMode;
 @synthesize delegate;
+@synthesize previewPhoto = _previewPhoto;
 @synthesize imageSelectionSheet = _imageSelectionSheet, cancelActionSheet = _cancelActionSheet;
 
 - (id)initWithStyle:(UITableViewStyle)style
@@ -35,7 +37,7 @@
     self = [super initWithStyle:style];
     if (self) {
         // Custom initialization
-        self.title = NSLocalizedString(@"Image", @"Image object");
+        self.title = NSLocalizedString(@"Photo", @"Photo object");
     }
     return self;
 }
@@ -49,7 +51,7 @@
     
     if (!previewMode)
     {
-        [self createImageObjectAndFolder];
+        [self createPhotoObjectAndStoragePath];
     }
 }
 
@@ -61,7 +63,8 @@
     [self setImageSelectionSheet:nil];
     [self setCancelActionSheet:nil];
     [self setDelegate:nil];
-    [self setContent:nil];
+    [self setPhoto:nil];
+    [self setPreviewPhoto:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -72,7 +75,7 @@
 - (void)viewWillDisappear:(BOOL)animated
 {
     [super viewWillDisappear:animated];
-    [delegate photoManageController:self didFinishEditContent:YES];
+    [delegate photoManageController:self didFinishEditPhoto:YES];
 }
 
 - (void)didReceiveMemoryWarning
@@ -83,22 +86,20 @@
 
 #pragma mark - Image Object and Folder
 
-- (void)createImageObjectAndFolder
+- (void)createPhotoObjectAndStoragePath
 {
-    /*
     NSManagedObjectContext *context = self.managedObjectContext;
-    NSEntityDescription *entity = [NSEntityDescription entityForName:@"ImageContent" inManagedObjectContext:context];
-    _content = [NSEntityDescription insertNewObjectForEntityForName:[entity name] inManagedObjectContext:context];
-    _content.date = [NSDate date];
-    _content.folderPath = [IMAGE_BOX_PATH stringByAppendingPathComponent:[self stringFromDate:_content.date]];
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PhotoObject" inManagedObjectContext:context];
+    _photo = [NSEntityDescription insertNewObjectForEntityForName:[entity name] inManagedObjectContext:context];
+    _photo.date = [NSDate date];
+    _photo.storagePath = [IMAGE_BOX_PATH stringByAppendingPathComponent:[self stringFromDate:_photo.date]];
     
-    NSLog(@"created image folder at path: %@", _content.folderPath);
+    NSLog(@"Created image folder at path: %@", _photo.storagePath);
     
-    if (![[NSFileManager defaultManager] fileExistsAtPath:_content.folderPath])
+    if (![[NSFileManager defaultManager] fileExistsAtPath:_photo.storagePath])
     {
-        [[NSFileManager defaultManager] createDirectoryAtPath:_content.folderPath withIntermediateDirectories:NO attributes:nil error:NULL];
+        [[NSFileManager defaultManager] createDirectoryAtPath:_photo.storagePath withIntermediateDirectories:NO attributes:nil error:NULL];
     }
-     */
 }
 
 - (NSString *)stringFromDate:(NSDate *)date
@@ -130,21 +131,21 @@
 {
     if (!self.cancelActionSheet)
     {
-        _cancelActionSheet = [[UIActionSheet alloc] initWithTitle:NSLocalizedString(@"Record will not be saved", @"Cancel warning") delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Yes" otherButtonTitles:nil];
+        _cancelActionSheet = [[UIActionSheet alloc] initWithTitle:NSLocalizedString(@"Photo record will not be saved", @"Cancel warning") delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"OK" otherButtonTitles:nil];
     }
     [_cancelActionSheet showInView:self.view];
 }
 
 - (void)done
 {
-    if ([_nameField.text length] != 0 && [_content.hasPhoto boolValue] && [_content.hasLocation boolValue])
+    if ([_nameField.text length] != 0 && [_photo.hasPhoto boolValue] && [_photo.hasLocation boolValue])
     {
-        [self saveContent];
+        [self savePhotoObject];
         [self dismissViewControllerAnimated:YES completion:nil];
     }
     else
     {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"The image attributes are not completed" message:@"Please check the name, photo and location information" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"The photo attributes are not completed!" message:@"Please check the completeness of name, image and location information and save again." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         [alert show];
     }
 }
@@ -159,7 +160,7 @@
     
     if (!editing)
     {
-        [self saveContent];
+        [self savePhotoObject];
         [self allResignFirstResponse];
     }
 }
@@ -188,51 +189,37 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 4;
+    return 3;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
     switch (section)
     {
-        case 0: {
-          return nil;
-        } break;
-            
-        case 1: {
-            return NSLocalizedString(@"Photo", @"Photo");
-        } break;
-            
-        case 2: {
-            return NSLocalizedString(@"Location", @"Location");
-        } break;
-            
-        default:
-            return NSLocalizedString(@"Comments", @"Comments");
-            break;
+        case 0: return NSLocalizedString(@"Photo", @"Photo");
+        case 1: return NSLocalizedString(@"Location", @"Location");
+        default: return NSLocalizedString(@"Comments", @"Comments");
     }
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section
 {
-    if (section == 3)
+    switch (section)
     {
-        return NSLocalizedString(@"Typing symbols like '.', '!' or '?' can start a new paragraph.", @"Comment Tip");
-        ;
+        case 2: return NSLocalizedString(@"Typing symbols like '.', '!' or '?' can start a new paragraph.", @"Comment Tip");
+        default: return nil;
     }
     
-    return nil;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    NSArray *counts = [NSArray arrayWithObjects:
-                       [NSNumber numberWithInt:1],      //Name
-                       [NSNumber numberWithInt:1],      //Image
-                       [NSNumber numberWithInt:1],      //Location
-                       [NSNumber numberWithInt:1],      //Comment
-                       nil];
-    return [[counts objectAtIndex:section] integerValue];
+    NSArray *numberOfRows = [NSArray arrayWithObjects:
+                             [NSNumber numberWithInteger:2],
+                             [NSNumber numberWithInteger:1],
+                             [NSNumber numberWithInteger:1],
+                             nil];
+    return [[numberOfRows objectAtIndex:section] integerValue];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -240,17 +227,15 @@
     NSInteger section = indexPath.section;
     switch (section)
     {
-        case 0: return [self cellForImageName];
-        case 1: return [self cellForImageView];
-        case 2: return [self cellForImageLocation];
-        case 3: return [self cellForImageComment];
-        default: return nil;
+        case 0: return [self cellForPhotoAttributeAtIndex:indexPath.row];
+        case 1: return [self cellForPhotoLocation];
+        default: return [self cellForPhotoComments];
     }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.section == 3) //Comment
+    if (indexPath.section == 2) //Comment
     {
         return BIG_CELL_HEIGHT;
     }
@@ -263,27 +248,30 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {    
     //select image cell
-    if (indexPath.section == 1)
+    if (indexPath.section == 0)
     {
-        if (previewMode)
+        if (indexPath.row == 1)
         {
-            [self pushImagePreviewView];
-        }
-        else
-        {
-            if ([_content.hasPhoto boolValue])
+            if (previewMode)
             {
                 [self pushImagePreviewView];
             }
             else
             {
-                [self showImageSelectionSheet];
+                if ([_photo.hasPhoto boolValue])
+                {
+                    [self pushImagePreviewView];
+                }
+                else
+                {
+                    [self showImageSelectionSheet];
+                }
             }
         }
     }
     
     //select location cell
-    if (indexPath.section == 2)
+    if (indexPath.section == 1)
     {
         [self pushLocationViewAllowEditing:previewMode];
     }
@@ -293,7 +281,7 @@
 {
     if (!self.imageSelectionSheet)
     {
-        _imageSelectionSheet = [[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:NSLocalizedString(@"Camera", @"Use camera"), NSLocalizedString(@"Photo Album", @"Select from camera roll"), nil];
+        _imageSelectionSheet = [[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:NSLocalizedString(@"Camera", @"Use camera"), NSLocalizedString(@"Photo Album", @"Select from photo album"), nil];
     }
     
     [_imageSelectionSheet showInView:self.view];
@@ -302,14 +290,24 @@
 
 - (void)pushImagePreviewView
 {
+    [self prepareForPreviewPhoto];
     
+    MWPhoto *photo = [[MWPhoto alloc] initWithImage:[UIImage imageWithContentsOfFile:_photo.photoPath]];
+    
+    [_previewPhoto addObject:photo];
+    
+    MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
+    browser.displayActionButton = previewMode;
+    browser.wantsFullScreenLayout = YES;
+    
+    [self.navigationController pushViewController:browser animated:YES];
 }
 
 - (void)pushLocationViewAllowEditing:(BOOL)allow
 {
     //push location view
     PhotoLocationController *locationController = [[PhotoLocationController alloc] initWithNibName:@"PhotoLocationController" bundle:nil];
-    locationController.content = self.content;
+    locationController.photo = self.photo;
     locationController.delegate = self;
     locationController.previewMode = allow;
     locationController.managedObjectContext = self.managedObjectContext;
@@ -317,54 +315,66 @@
     [self.navigationController pushViewController:locationController animated:YES];
 }
 
+#pragma mark - Prepare Preview
+
+- (void)prepareForPreviewPhoto
+{
+    if (self.previewPhoto)
+    {
+        [_previewPhoto removeAllObjects];
+    }
+    else
+    {
+        _previewPhoto = [NSMutableArray array];
+    }
+}
+
 #pragma mark - Table Cells
 
-- (UITableViewCell *)cellForImageName
+- (UITableViewCell *)cellForPhotoAttributeAtIndex:(NSInteger)index
 {
-    static NSString *cellID = @"NameCell";
+    switch (index)
+    {
+        case 0: return [self cellForPhotoName];
+        default: return [self cellForPhotoView];
+    }
+}
+
+- (UITableViewCell *)cellForPhotoName
+{
+    static NSString *cellID = @"PhotoNameCell";
     UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:cellID];
     
     if (!cell)
     {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:cellID];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        cell.textLabel.text = NSLocalizedString(@"Name", @"Name");
     }
     
     if (!self.nameField)
     {
-        self.nameField = [[UITextField alloc] initWithFrame:CGRectMake(15, 8, 290, 30)];
+        self.nameField = [[UITextField alloc] initWithFrame:CGRectMake(80, 8, 225, 30)];
         _nameField.delegate = self;
         _nameField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-        _nameField.placeholder = @"Name";
+        _nameField.placeholder = @"e.g. Sai Kung";
         _nameField.clearButtonMode = UITextFieldViewModeWhileEditing;
         _nameField.textColor = [UIColor tableViewCellTextBlueColor];
+        _nameField.textAlignment = UITextAlignmentRight;
         [_nameField setReturnKeyType:UIReturnKeyDone];
         [_nameField addTarget:self action:@selector(textFieldFinished:) forControlEvents:UIControlEventEditingDidEndOnExit];
         self.nameField.enabled = !previewMode;
     }
     
-    _nameField.textAlignment = UITextAlignmentCenter;
-    
-#warning comment here
-    /*
-    if ([_content.name length] != 0)
-    {
-        _nameField.textAlignment = UITextAlignmentCenter;
-    }
-    else
-    {
-        _nameField.textAlignment = UITextAlignmentLeft;
-    }*/
-    
-    _nameField.text = _content.name;
+    _nameField.text = _photo.name;
     [cell addSubview:self.nameField];
     
     return cell;
 }
 
-- (UITableViewCell *)cellForImageView
+- (UITableViewCell *)cellForPhotoView
 {
-    static NSString *cellID = @"ImageCell";
+    static NSString *cellID = @"PhotoViewCell";
     UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:cellID];
     
     if (!cell)
@@ -376,8 +386,9 @@
     cell.textLabel.text = NSLocalizedString(@"Image", @"Image");
     cell.detailTextLabel.textColor = [UIColor tableViewCellTextBlueColor];
     
-    if ([_content.hasPhoto boolValue])
+    if ([_photo.hasPhoto boolValue])
     {
+        cell.detailTextLabel.text = nil;
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
     else
@@ -389,9 +400,9 @@
     return cell;
 }
 
-- (UITableViewCell *)cellForImageComment
+- (UITableViewCell *)cellForPhotoComments
 {
-    static NSString *cellID = @"ContentCell";
+    static NSString *cellID = @"PhotoCommentsCell";
     UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:cellID];
     
     if (!cell)
@@ -419,14 +430,14 @@
         [cell addSubview:self.commentView];
     }
     
-    _commentView.text = self.content.comment;
+    _commentView.text = _photo.comment;
     
     return cell;
 }
 
-- (UITableViewCell *)cellForImageLocation
+- (UITableViewCell *)cellForPhotoLocation
 {
-    static NSString *cellID = @"LocationCell";
+    static NSString *cellID = @"PhotoLocationCell";
     UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:cellID];
     
     if (!cell)
@@ -443,9 +454,9 @@
     
     cell.detailTextLabel.textAlignment = UITextAlignmentLeft;
     
-    if ([_content.hasLocation boolValue])
+    if ([_photo.hasLocation boolValue])
     {
-        cell.detailTextLabel.text = [NSString stringWithFormat:@"φ:%.3f, λ:%.3f", [_content.latitude doubleValue], [_content.longitude doubleValue]];
+        cell.detailTextLabel.text = [NSString stringWithFormat:@"φ:%.3f, λ:%.3f", [_photo.latitude doubleValue], [_photo.longitude doubleValue]];
     }
     else
     {
@@ -482,18 +493,7 @@
 
 - (void)textFieldDidEndEditing:(UITextField *)textField
 {
-    _content.name = textField.text;
-    
-#warning comment here
-    /*
-    if ([textField.text length] != 0)
-    {
-        textField.textAlignment = UITextAlignmentCenter;
-    }
-    else
-    {
-        textField.textAlignment = UITextAlignmentLeft;
-    }*/
+    _photo.name = textField.text;
 }
 
 - (BOOL)enableEnterKeyForTextView:(UITextView *)view
@@ -530,7 +530,7 @@
 
 - (void)textViewDidEndEditing:(UITextView *)textView
 {
-    _content.comment = textView.text;
+    _photo.comment = textView.text;
 }
 
 #pragma mark - UIActionSheet Delegate Method
@@ -561,7 +561,7 @@
         switch (buttonIndex)
         {
             case 0:{
-                [self deleteContent];
+                [self deletePhotoObject];
                 [self dismissModalViewControllerAnimated:YES];
             } break;
                 
@@ -574,19 +574,19 @@
 
 #pragma mark - Delete Content
 
-- (void)deleteContent
+- (void)deletePhotoObject
 {
     //remove image folder
-    if ([[NSFileManager defaultManager] fileExistsAtPath:_content.storagePath])
+    if ([[NSFileManager defaultManager] fileExistsAtPath:_photo.storagePath])
     {
-        [[NSFileManager defaultManager] removeItemAtPath:_content.storagePath error:NULL];
+        [[NSFileManager defaultManager] removeItemAtPath:_photo.storagePath error:NULL];
     }
     
-    NSLog(@"delete image folder at path: %@", _content.storagePath);
+    NSLog(@"Deleted image folder at path: %@", _photo.storagePath);
     
     //delete image item in database
     NSManagedObjectContext *context = self.managedObjectContext;
-    [context deleteObject:_content];
+    [context deleteObject:_photo];
     
     NSError *error = nil;
     if (![context save:&error])
@@ -640,22 +640,22 @@
     
     if ([mediaType isEqualToString:(NSString *)kUTTypeImage])
     {
+        
         //get image and storage path
         UIImage *image = [info valueForKey:UIImagePickerControllerOriginalImage];
-        NSString *path = [[_content.storagePath stringByAppendingPathComponent:[self stringFromDate:[NSDate date]]] stringByAppendingPathExtension:@"jpeg"];
-        NSLog(@"image should save to path: %@", path);
+        NSString *path = [[_photo.storagePath stringByAppendingPathComponent:[self stringFromDate:[NSDate date]]] stringByAppendingPathExtension:@"jpeg"];
+        NSLog(@"Image should save to path: %@", path);
         
         //empty the images in folder
         NSFileManager *fileManager = [NSFileManager defaultManager];
-        NSArray *folderContents = [fileManager contentsOfDirectoryAtPath:_content.storagePath error:NULL];
+        NSArray *folderContents = [fileManager contentsOfDirectoryAtPath:_photo.storagePath error:NULL];
         
         if ([folderContents count] != 0)
         {
-            
             for (NSString *pathComponent in folderContents)
             {
-                NSString *filePath = [_content.storagePath stringByAppendingPathComponent:pathComponent];
-                NSLog(@"file at path: %@",filePath);
+                NSString *filePath = [_photo.storagePath stringByAppendingPathComponent:pathComponent];
+                NSLog(@"Check image at path: %@",filePath);
                 
                 if ([fileManager fileExistsAtPath:filePath])
                 {
@@ -667,8 +667,8 @@
         //create image to folder
         [fileManager createFileAtPath:path contents:UIImageJPEGRepresentation(image, 1.0) attributes:nil];
         
-        _content.photoPath = path;
-        _content.hasPhoto = [NSNumber numberWithBool:YES];
+        _photo.photoPath = path;
+        _photo.hasPhoto = [NSNumber numberWithBool:YES];
         
         if (newMedia)
         {
@@ -683,7 +683,7 @@
 {
     if (error) {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Warning"
-                                                        message:[NSString stringWithFormat:@"Failed to save the captured image into Photo Album, please check image at file path: %@", _content.storagePath]
+                                                        message:[NSString stringWithFormat:@"Failed to save the captured image into Photo Album, please check this image at file path: %@", _photo.storagePath]
                                                        delegate:nil
                                               cancelButtonTitle:@"OK"
                                               otherButtonTitles:nil];
@@ -691,9 +691,9 @@
     }
 }
 
-#pragma mark - Image Location Controller Delegate
+#pragma mark - Photo Location Controller Delegate
 
-- (void)photoLocationController:(PhotoLocationController *)controller didFinishLocating:(BOOL)success
+- (void)photoLocationController:(PhotoLocationController *)controller didFinishLocatePhoto:(BOOL)success
 {
     if (success)
     {
@@ -701,9 +701,9 @@
     }
 }
 
-#pragma mark - Content save
+#pragma mark - PhotoObject save
 
-- (void)saveContent
+- (void)savePhotoObject
 {
     NSManagedObjectContext *context = self.managedObjectContext;
     
@@ -715,6 +715,23 @@
         NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
         abort();
     }
+}
+
+#pragma mark - MWPhotoBrowser Delegate
+
+- (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser
+{
+    return [_previewPhoto count];
+}
+
+- (MWPhoto *)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index
+{
+    if (index < [_previewPhoto count])
+    {
+        return [_previewPhoto objectAtIndex:index];
+    }
+    
+    return nil;
 }
 
 @end

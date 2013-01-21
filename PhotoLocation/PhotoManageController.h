@@ -8,16 +8,15 @@
 
 #import <UIKit/UIKit.h>
 #import <MobileCoreServices/MobileCoreServices.h>
-#import <AssetsLibrary/AssetsLibrary.h>
-#import <QuartzCore/QuartzCore.h>
+#import "MWPhotoBrowser.h"
 #import "PhotoLocationController.h"
 
 @protocol PhotoManageControllerDelegate;
 
-@interface PhotoManageController : UITableViewController <UITextFieldDelegate, UITextViewDelegate, UIActionSheetDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, PhotoLocationControllerDelegate>
+@interface PhotoManageController : UITableViewController <UITextFieldDelegate, UITextViewDelegate, UIActionSheetDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, PhotoLocationControllerDelegate, MWPhotoBrowserDelegate>
 
 @property (strong, nonatomic)   NSManagedObjectContext          *managedObjectContext;
-@property (strong, nonatomic)   PhotoObject                     *content;
+@property (strong, nonatomic)   PhotoObject                     *photo;
 @property                       BOOL                            previewMode;
 
 @property (weak, nonatomic) id <PhotoManageControllerDelegate>  delegate;
@@ -28,6 +27,6 @@
 
 @protocol PhotoManageControllerDelegate 
 
-- (void)photoManageController:(PhotoManageController *)controller didFinishEditContent:(BOOL)success;
+- (void)photoManageController:(PhotoManageController *)controller didFinishEditPhoto:(BOOL)success;
 
 @end

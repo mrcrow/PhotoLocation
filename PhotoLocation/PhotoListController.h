@@ -10,8 +10,9 @@
 
 #import <CoreData/CoreData.h>
 #import "PhotoManageController.h"
+#import "MWPhotoBrowser.h"
 
-@interface PhotoListController : UITableViewController <NSFetchedResultsControllerDelegate, UIActionSheetDelegate, PhotoManageControllerDelegate>
+@interface PhotoListController : UITableViewController <NSFetchedResultsControllerDelegate, UIActionSheetDelegate, PhotoManageControllerDelegate, MWPhotoBrowserDelegate>
 
 @property (strong, nonatomic)   NSFetchedResultsController  *fetchedResultsController;
 @property (strong, nonatomic)   NSManagedObjectContext      *managedObjectContext;

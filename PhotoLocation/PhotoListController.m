@@ -11,6 +11,7 @@
 @interface PhotoListController ()
 @property                       BOOL            searchWasActive;
 @property (strong, nonatomic)   NSMutableArray  *searchedObjects;
+@property (strong, nonatomic)   NSMutableArray  *previewPhotos;
 
 @property (strong, nonatomic)   UIBarButtonItem *previewButton;
 @property (strong, nonatomic)   UIBarButtonItem *uploadButton;
@@ -21,7 +22,7 @@
 
 @implementation PhotoListController
 @synthesize fetchedResultsController = _fetchedResultsController;
-@synthesize searchedObjects = _searchedObjects, searchWasActive;
+@synthesize searchedObjects = _searchedObjects, previewPhotos = _previewPhotos, searchWasActive;
 @synthesize previewButton = _previewButton, uploadButton = _uploadButton, deleteButton = _deleteButton;
 
 static NSString *IMPreviewSome  = @"Preview (%d)";
@@ -35,7 +36,7 @@ static NSString *IMDeleteAll    = @"Delete All";
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        self.title = NSLocalizedString(@"List", @"Image lists");
+        self.title = NSLocalizedString(@"Photo List", @"Photo lists");
         self.clearsSelectionOnViewWillAppear = NO;
     }
     return self;
@@ -46,7 +47,7 @@ static NSString *IMDeleteAll    = @"Delete All";
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     
-    [self addImageContentButton];
+    [self addPhotoObjectButton];
     self.navigationItem.leftBarButtonItem = self.editButtonItem;
 
     self.searchedObjects = [NSMutableArray arrayWithCapacity:[[self.fetchedResultsController fetchedObjects] count]];
@@ -99,16 +100,16 @@ static NSString *IMDeleteAll    = @"Delete All";
     self.searchWasActive = [self.searchDisplayController isActive];
 }
 
-- (void)insertImageContent:(id)sender
+- (void)insertPhotoObject:(id)sender
 {     
     PhotoManageController *manageController = [[PhotoManageController alloc] initWithStyle:UITableViewStyleGrouped];
     manageController.delegate = self;
     manageController.managedObjectContext = self.managedObjectContext;
     manageController.previewMode = NO;
     
-    UINavigationController *addImageNavigator = [[UINavigationController alloc] initWithRootViewController:manageController];
+    UINavigationController *addPhotoNavigator = [[UINavigationController alloc] initWithRootViewController:manageController];
     
-    [self presentViewController:addImageNavigator animated:YES completion:nil];
+    [self presentViewController:addPhotoNavigator animated:YES completion:nil];
 }
 
 - (void)viewDidUnload
@@ -117,9 +118,24 @@ static NSString *IMDeleteAll    = @"Delete All";
     [self setFetchedResultsController:nil];
     [self setManagedObjectContext:nil];
     [self setSearchedObjects:nil];
+    [self setPreviewPhotos:nil];
     [self setPreviewButton:nil];
     [self setUploadButton:nil];
     [self setDeleteButton:nil];
+}
+
+#pragma mark - Prepare Preview
+
+- (void)prepareForPreviewPhotos
+{
+    if (self.previewPhotos)
+    {
+        [_previewPhotos removeAllObjects];
+    }
+    else
+    {
+        _previewPhotos = [NSMutableArray array];
+    }
 }
 
 #pragma mark - Editing Overwrite
@@ -143,7 +159,7 @@ static NSString *IMDeleteAll    = @"Delete All";
     }
     else
     {
-        [self addImageContentButton];
+        [self addPhotoObjectButton];
     }
     
     [self refreshButtonTitles];
@@ -172,7 +188,7 @@ static NSString *IMDeleteAll    = @"Delete All";
     
     if (!self.deleteButton)
     {
-        _deleteButton = [[UIBarButtonItem alloc] initWithTitle:@"Delete (0)" style:UIBarButtonItemStyleBordered target:self action:@selector(multiPhotoDelete)];
+        _deleteButton = [[UIBarButtonItem alloc] initWithTitle:@"Delete (0)" style:UIBarButtonItemStyleBordered target:self action:@selector(showPhotoDeleteWarning)];
         _deleteButton.tintColor = [UIColor redColor];
         _deleteButton.enabled = NO;
     }
@@ -185,9 +201,9 @@ static NSString *IMDeleteAll    = @"Delete All";
     [self.navigationItem setRightBarButtonItem:nil animated:YES];
 }
 
-- (void)addImageContentButton
+- (void)addPhotoObjectButton
 {
-    UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertImageContent:)];
+    UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertPhotoObject:)];
     [self.navigationItem setRightBarButtonItem:addButton animated:YES];
 }
 
@@ -195,17 +211,26 @@ static NSString *IMDeleteAll    = @"Delete All";
 {
     NSArray *selectedIndexPath = [self.tableView indexPathsForSelectedRows];
     
-    NSMutableArray *photos = [NSMutableArray array];
+    [self prepareForPreviewPhotos];
     for (NSIndexPath *indexPath in selectedIndexPath)
     {
-       
+        PhotoObject *photo = [self.fetchedResultsController objectAtIndexPath:indexPath];
+        MWPhoto *wPhoto = [[MWPhoto alloc] initWithImage:[UIImage imageWithContentsOfFile:photo.photoPath]];
+
+#warning manage image caption here
+        [_previewPhotos addObject:wPhoto];
     }
 
+    MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
+    browser.displayActionButton = YES;
+    
+    UINavigationController *browserNavigator = [[UINavigationController alloc] initWithRootViewController:browser];
+    [self presentViewController:browserNavigator animated:YES completion:nil];
 }
 
-- (void)showImageContentDeleteWarning
+- (void)showPhotoDeleteWarning
 {
-    UIActionSheet *deleteWarning = [[UIActionSheet alloc] initWithTitle:@"Delete selected images?" delegate:self cancelButtonTitle:@"No" destructiveButtonTitle:@"Yes" otherButtonTitles:nil];
+    UIActionSheet *deleteWarning = [[UIActionSheet alloc] initWithTitle:@"Delete selected Photo Object?" delegate:self cancelButtonTitle:@"No" destructiveButtonTitle:@"Yes" otherButtonTitles:nil];
     [deleteWarning showFromToolbar:self.navigationController.toolbar];
 }
 
@@ -215,23 +240,22 @@ static NSString *IMDeleteAll    = @"Delete All";
     
     for (NSIndexPath *indexPath in selectedIndexPath)
     {
-        [self deleteImageContentAtIndexPath:indexPath];
+        [self deletePhotoObjectAtIndexPath:indexPath];
     }
 }
 
-- (void)deleteImageContentAtIndexPath:(NSIndexPath *)indexPath
+- (void)deletePhotoObjectAtIndexPath:(NSIndexPath *)indexPath
 {
-    /*
-    ImageContent *content = [self.fetchedResultsController objectAtIndexPath:indexPath];
+    PhotoObject *photo = [self.fetchedResultsController objectAtIndexPath:indexPath];
     
-    if ([[NSFileManager defaultManager] fileExistsAtPath:content.folderPath])
+    if ([[NSFileManager defaultManager] fileExistsAtPath:photo.storagePath])
     {
-        [[NSFileManager defaultManager] removeItemAtPath:content.folderPath error:NULL];
-        NSLog(@"delete image folder at path: %@", content.folderPath);
+        [[NSFileManager defaultManager] removeItemAtPath:photo.storagePath error:NULL];
+        NSLog(@"Delete image folder at path: %@", photo.storagePath);
     }
     
     NSManagedObjectContext *context = [self.fetchedResultsController managedObjectContext];
-    [context deleteObject:content];
+    [context deleteObject:photo];
     
     NSError *error = nil;
     if (![context save:&error])
@@ -241,9 +265,9 @@ static NSString *IMDeleteAll    = @"Delete All";
         NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
         abort();
     }
-    */
 }
 
+#warning missing photo upload method
 - (void)multiPhotoUpload
 {
     
@@ -282,14 +306,17 @@ static NSString *IMDeleteAll    = @"Delete All";
     }
 }
 
-#pragma mark - ActionSheet Delegate: Delete ImageContents
+#pragma mark - ActionSheet Delegate: Delete PhotoObject
 
 - (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex
 {
-
+    if (buttonIndex == actionSheet.destructiveButtonIndex)
+    {
+        [self multiPhotoDelete];
+    }
 }
 
-#pragma mark - Table View
+#pragma mark - Table View Delegate Methods
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
@@ -344,24 +371,21 @@ static NSString *IMDeleteAll    = @"Delete All";
 
 - (void)tableView:(UITableView *)tableView configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath
 {
-    /*
+    PhotoObject *photo = nil;
     if (tableView == self.tableView)
     {
-        ImageContent *imageContent = [self.fetchedResultsController objectAtIndexPath:indexPath];
-        cell.textLabel.text = imageContent.name;
-        cell.detailTextLabel.text = imageContent.comment;
-        cell.detailTextLabel.numberOfLines = 2;
-        cell.detailTextLabel.lineBreakMode = UILineBreakModeTailTruncation;
+        photo = [self.fetchedResultsController objectAtIndexPath:indexPath];
+        
     }
     else
     {
-        ImageContent *imageContent = [self.searchedObjects objectAtIndex:indexPath.row];
-        cell.textLabel.text = imageContent.name;
-        cell.detailTextLabel.text = imageContent.comment;
-        cell.detailTextLabel.numberOfLines = 2;
-        cell.detailTextLabel.lineBreakMode = UILineBreakModeTailTruncation;
+        photo = [self.searchedObjects objectAtIndex:indexPath.row];
     }
-     */
+    
+    cell.textLabel.text = photo.name;
+    cell.detailTextLabel.text = photo.comment;
+    cell.detailTextLabel.numberOfLines = 2;
+    cell.detailTextLabel.lineBreakMode = UILineBreakModeTailTruncation;
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
@@ -412,43 +436,52 @@ static NSString *IMDeleteAll    = @"Delete All";
         return;
     }
 
-    ImageContent *imageContent = nil;
+    [self prepareForPreviewPhotos];
+    
+    PhotoObject *photo = nil;
     if ([self.searchDisplayController isActive])
     {
         NSInteger selectedRow = [self.searchDisplayController.searchResultsTableView indexPathForRowAtPoint:[gesture locationInView:self.searchDisplayController.searchResultsTableView]].row;
-        imageContent = [self.searchedObjects objectAtIndex:selectedRow];
+        photo = [self.searchedObjects objectAtIndex:selectedRow];
     }
     else
     {
         NSIndexPath *selectedPath = [self.tableView indexPathForRowAtPoint:[gesture locationInView:self.tableView]];
-        imageContent = [self.fetchedResultsController objectAtIndexPath:selectedPath];
+        photo = [self.fetchedResultsController objectAtIndexPath:selectedPath];
     }
     
-    Photo *photo = [[Photo alloc] initWithLocalPhotoPath:imageContent.imagePath name:imageContent.imageName];
+    MWPhoto *wPhoto = [[MWPhoto alloc] initWithImage:[UIImage imageWithContentsOfFile:photo.photoPath]];
+    
+#warning manage image caption here
+    wPhoto.caption = photo.name;
+    [_previewPhotos addObject:wPhoto];
+    
+    MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
+    browser.displayActionButton = YES;
+    
+    UINavigationController *browserNavigator = [[UINavigationController alloc] initWithRootViewController:browser];
 
-    EGOPhotoViewController *viewController = [[EGOPhotoViewController alloc] initWithPhoto:photo];
-        
-    [self.navigationController pushViewController:viewController animated:YES];
+    [self presentModalViewController:browserNavigator animated:YES];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if (!self.tableView.isEditing)
     {
-        ImageContent *imageContent = nil;
+        PhotoObject *photo = nil;
         
         if (tableView == self.tableView)
         {
-            imageContent = [self.fetchedResultsController objectAtIndexPath:indexPath];
+            photo = [self.fetchedResultsController objectAtIndexPath:indexPath];
         }
         else
         {
-            imageContent = [self.searchedObjects objectAtIndex:indexPath.row];
+            photo = [self.searchedObjects objectAtIndex:indexPath.row];
         }
         
-        ImageManageController *manageController = [[ImageManageController alloc] initWithStyle:UITableViewStyleGrouped];
+        PhotoManageController *manageController = [[PhotoManageController alloc] initWithStyle:UITableViewStyleGrouped];
         manageController.managedObjectContext = self.managedObjectContext;
-        manageController.content = imageContent;
+        manageController.photo = photo;
         manageController.previewMode = YES;
         
         [self.navigationController pushViewController:manageController animated:YES];
@@ -479,7 +512,7 @@ static NSString *IMDeleteAll    = @"Delete All";
     
     NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
     // Edit the entity name as appropriate.
-    NSEntityDescription *entity = [NSEntityDescription entityForName:@"ImageContent" inManagedObjectContext:self.managedObjectContext];
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PhotoObject" inManagedObjectContext:self.managedObjectContext];
     [fetchRequest setEntity:entity];
     
     // Set the batch size to a suitable number.
@@ -493,7 +526,7 @@ static NSString *IMDeleteAll    = @"Delete All";
     
     // Edit the section name key path and cache name if appropriate.
     // nil for section name key path means "no sections".
-    NSFetchedResultsController *aFetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:self.managedObjectContext sectionNameKeyPath:nil cacheName:@"ImageCache"];
+    NSFetchedResultsController *aFetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:self.managedObjectContext sectionNameKeyPath:nil cacheName:@"FetchCache"];
     aFetchedResultsController.delegate = self;
     self.fetchedResultsController = aFetchedResultsController;
     
@@ -569,15 +602,15 @@ static NSString *IMDeleteAll    = @"Delete All";
 {
 	[self.searchedObjects removeAllObjects]; 
 	
-    for (ImageContent *content in [self.fetchedResultsController fetchedObjects])
+    for (PhotoObject *photo in [self.fetchedResultsController fetchedObjects])
     {
-        NSComparisonResult nameCompare = [content.name compare:searchText options:(NSCaseInsensitiveSearch|NSDiacriticInsensitiveSearch) range:NSMakeRange(0, [searchText length])];
+        NSComparisonResult nameCompare = [photo.name compare:searchText options:(NSCaseInsensitiveSearch|NSDiacriticInsensitiveSearch) range:NSMakeRange(0, [searchText length])];
         
-         NSComparisonResult commentCompare = [content.comment compare:searchText options:(NSCaseInsensitiveSearch|NSDiacriticInsensitiveSearch) range:NSMakeRange(0, [searchText length])];
+         NSComparisonResult commentCompare = [photo.comment compare:searchText options:(NSCaseInsensitiveSearch|NSDiacriticInsensitiveSearch) range:NSMakeRange(0, [searchText length])];
         
         if (nameCompare == NSOrderedSame || commentCompare == NSOrderedSame)
         {
-            [self.searchedObjects addObject:content];
+            [self.searchedObjects addObject:photo];
         }
     }
 }
@@ -600,14 +633,31 @@ static NSString *IMDeleteAll    = @"Delete All";
     return YES;
 }
 
-#pragma mark - ImageManageController Delegate
+#pragma mark - PhotoManageController Delegate
 
-- (void)photoManagerController:(PhotoManageController *)controller didFinishEditContent:(BOOL)success
+- (void)photoManageController:(PhotoManageController *)controller didFinishEditPhoto:(BOOL)success
 {
     if (success)
     {
         [self.tableView reloadData];
     }
+}
+
+#pragma mark - MWPhotoBrowserDelegate Method
+
+- (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser
+{
+    return [_previewPhotos count];
+}
+
+- (MWPhoto *)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index
+{
+    if (index < [_previewPhotos count])
+    {
+        return [_previewPhotos objectAtIndex:index];
+    }
+        
+    return nil;
 }
 
 @end

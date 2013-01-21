@@ -17,7 +17,7 @@
 
 @property (weak, nonatomic) IBOutlet    MKMapView                   *mapView;
 @property (strong, nonatomic)           UIImageView                 *centerTarget;
-@property (strong, nonatomic)           PhotoObject                 *content;
+@property (strong, nonatomic)           PhotoObject                 *photo;
 @property (strong, nonatomic)           NSManagedObjectContext      *managedObjectContext;
 @property                               BOOL                        previewMode;
 
@@ -27,6 +27,6 @@
 
 @protocol PhotoLocationControllerDelegate
 
-- (void)photoLocationController:(PhotoLocationController *)controller didFinishLocating:(BOOL)success;
+- (void)photoLocationController:(PhotoLocationController *)controller didFinishLocatePhoto:(BOOL)success;
 
 @end

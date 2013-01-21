@@ -20,7 +20,6 @@
 		E88BE32916AAF9910065186B /* PhotoLocation.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = E88BE32716AAF9910065186B /* PhotoLocation.xcdatamodeld */; };
 		E88BE34816AAFBBE0065186B /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E88BE34716AAFBBE0065186B /* MessageUI.framework */; };
 		E88BE34A16AAFBC70065186B /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E88BE34916AAFBC70065186B /* ImageIO.framework */; };
-		E88BE35216AB02F00065186B /* PhotoObject.m in Sources */ = {isa = PBXBuildFile; fileRef = E88BE35116AB02F00065186B /* PhotoObject.m */; };
 		E88BE35E16AB04C30065186B /* PhotoListController.m in Sources */ = {isa = PBXBuildFile; fileRef = E88BE35416AB040A0065186B /* PhotoListController.m */; };
 		E88BE35F16AB04C30065186B /* PhotoLocationController.m in Sources */ = {isa = PBXBuildFile; fileRef = E88BE35616AB040A0065186B /* PhotoLocationController.m */; };
 		E88BE36016AB04C30065186B /* PhotoManageController.m in Sources */ = {isa = PBXBuildFile; fileRef = E88BE35916AB040A0065186B /* PhotoManageController.m */; };
@@ -47,6 +46,10 @@
 		E88BE3AC16AB0CE10065186B /* MWTapDetectingView.m in Sources */ = {isa = PBXBuildFile; fileRef = E88BE37A16AB07930065186B /* MWTapDetectingView.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		E88BE3AD16AB0CE10065186B /* MWZoomingScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = E88BE37C16AB07930065186B /* MWZoomingScrollView.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		E88BE3AE16AB0CE10065186B /* PopoverView.m in Sources */ = {isa = PBXBuildFile; fileRef = E88BE36E16AB06B50065186B /* PopoverView.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		E88BE3C316ACD4720065186B /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E88BE3C216ACD4720065186B /* MapKit.framework */; };
+		E88BE3C516ACD49D0065186B /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E88BE3C416ACD49D0065186B /* MobileCoreServices.framework */; };
+		E88BE3C716ACD4B30065186B /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E88BE3C616ACD4B30065186B /* CoreLocation.framework */; };
+		E8DB9A5E16ACF50E004DDF66 /* PhotoObject.m in Sources */ = {isa = PBXBuildFile; fileRef = E8DB9A5D16ACF50D004DDF66 /* PhotoObject.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -67,8 +70,6 @@
 		E88BE32816AAF9910065186B /* PhotoLocation.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PhotoLocation.xcdatamodel; sourceTree = "<group>"; };
 		E88BE34716AAFBBE0065186B /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
 		E88BE34916AAFBC70065186B /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
-		E88BE35016AB02F00065186B /* PhotoObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PhotoObject.h; sourceTree = "<group>"; };
-		E88BE35116AB02F00065186B /* PhotoObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PhotoObject.m; sourceTree = "<group>"; };
 		E88BE35316AB040A0065186B /* PhotoListController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PhotoListController.h; sourceTree = "<group>"; };
 		E88BE35416AB040A0065186B /* PhotoListController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PhotoListController.m; sourceTree = "<group>"; };
 		E88BE35516AB040A0065186B /* PhotoLocationController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PhotoLocationController.h; sourceTree = "<group>"; };
@@ -119,6 +120,11 @@
 		E88BE39B16AB0A6B0065186B /* PhotoListController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PhotoListController.xib; sourceTree = "<group>"; };
 		E88BE39D16AB0CA10065186B /* ColorExtention.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ColorExtention.h; sourceTree = "<group>"; };
 		E88BE39E16AB0CA10065186B /* ColorExtention.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ColorExtention.m; sourceTree = "<group>"; };
+		E88BE3C216ACD4720065186B /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
+		E88BE3C416ACD49D0065186B /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
+		E88BE3C616ACD4B30065186B /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		E8DB9A5C16ACF50D004DDF66 /* PhotoObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PhotoObject.h; sourceTree = "<group>"; };
+		E8DB9A5D16ACF50D004DDF66 /* PhotoObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PhotoObject.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -126,6 +132,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E88BE3C716ACD4B30065186B /* CoreLocation.framework in Frameworks */,
+				E88BE3C516ACD49D0065186B /* MobileCoreServices.framework in Frameworks */,
+				E88BE3C316ACD4720065186B /* MapKit.framework in Frameworks */,
 				E88BE34A16AAFBC70065186B /* ImageIO.framework in Frameworks */,
 				E88BE34816AAFBBE0065186B /* MessageUI.framework in Frameworks */,
 				E88BE30E16AAF98A0065186B /* UIKit.framework in Frameworks */,
@@ -158,6 +167,9 @@
 		E88BE30C16AAF98A0065186B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				E88BE3C616ACD4B30065186B /* CoreLocation.framework */,
+				E88BE3C416ACD49D0065186B /* MobileCoreServices.framework */,
+				E88BE3C216ACD4720065186B /* MapKit.framework */,
 				E88BE34916AAFBC70065186B /* ImageIO.framework */,
 				E88BE34716AAFBBE0065186B /* MessageUI.framework */,
 				E88BE30D16AAF98A0065186B /* UIKit.framework */,
@@ -200,8 +212,8 @@
 			isa = PBXGroup;
 			children = (
 				E88BE32716AAF9910065186B /* PhotoLocation.xcdatamodeld */,
-				E88BE35016AB02F00065186B /* PhotoObject.h */,
-				E88BE35116AB02F00065186B /* PhotoObject.m */,
+				E8DB9A5C16ACF50D004DDF66 /* PhotoObject.h */,
+				E8DB9A5D16ACF50D004DDF66 /* PhotoObject.m */,
 			);
 			name = "Data Modal";
 			sourceTree = "<group>";
@@ -283,11 +295,11 @@
 		E88BE3B016AB9CE10065186B /* Class */ = {
 			isa = PBXGroup;
 			children = (
+				E88BE3B316AB9E280065186B /* Color */,
 				E88BE3B416AB9E330065186B /* AppDelegate */,
 				E88BE34F16AB02DE0065186B /* Data Modal */,
-				E88BE3B316AB9E280065186B /* Color */,
-				E88BE3B216AB9D380065186B /* Photo Object Manage */,
 				E88BE3B116AB9D1D0065186B /* Photo List */,
+				E88BE3B216AB9D380065186B /* Photo Object Manage */,
 			);
 			name = Class;
 			sourceTree = "<group>";
@@ -427,7 +439,7 @@
 				E88BE31C16AAF98C0065186B /* main.m in Sources */,
 				E88BE32016AAF98D0065186B /* AppDelegate.m in Sources */,
 				E88BE32916AAF9910065186B /* PhotoLocation.xcdatamodeld in Sources */,
-				E88BE35216AB02F00065186B /* PhotoObject.m in Sources */,
+				E8DB9A5E16ACF50E004DDF66 /* PhotoObject.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -538,6 +550,7 @@
 				E88BE33A16AAF9940065186B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 

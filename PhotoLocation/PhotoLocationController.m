@@ -16,7 +16,7 @@
 @synthesize userAnnotation = _userAnnotation;
 @synthesize delegate;
 @synthesize centerTarget;
-@synthesize content, previewMode, managedObjectContext = __managedObjectContext;
+@synthesize photo = _photo, previewMode, managedObjectContext = __managedObjectContext;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -53,7 +53,7 @@
     [super viewWillDisappear:animated];
     if (!previewMode)
     {
-        [delegate photoLocationController:self didFinishLocating:YES];
+        [delegate photoLocationController:self didFinishLocatePhoto:YES];
     }
     
     [self.navigationController setToolbarHidden:YES animated:YES];
@@ -73,7 +73,7 @@
     [self setMapView:nil];
     [self setCenterTarget:nil];
     [self setUserAnnotation:nil];
-    [self setContent:nil];
+    [self setPhoto:nil];
     [self setManagedObjectContext:nil];
     [super viewDidUnload];
 }
@@ -82,9 +82,9 @@
 
 - (void)loadLocation
 {
-    if ([content.hasLocation boolValue])
+    if ([_photo.hasLocation boolValue])
     {
-        CLLocationCoordinate2D coordinate = CLLocationCoordinate2DMake([content.latitude doubleValue], [content.longitude doubleValue]);
+        CLLocationCoordinate2D coordinate = CLLocationCoordinate2DMake([_photo.latitude doubleValue], [_photo.longitude doubleValue]);
         
         MKCoordinateRegion area = MKCoordinateRegionMakeWithDistance(coordinate, 200, 200);
         [_mapView setRegion:area animated:YES];
@@ -163,13 +163,13 @@
     CLLocationCoordinate2D touchMapCoordinate = [self.mapView convertPoint:touchPoint toCoordinateFromView:self.mapView];
     
     MKPointAnnotation *annot = [[MKPointAnnotation alloc] init];
-    annot.title = @"Image Location";
+    annot.title = @"Location";
     annot.coordinate = touchMapCoordinate;
     annot.subtitle = [NSString stringWithFormat:@"φ:%.4f, λ:%.4f", touchMapCoordinate.latitude, touchMapCoordinate.longitude];
     
-    content.hasLocation = [NSNumber numberWithBool:YES];
-    content.latitude = [NSNumber numberWithDouble:touchMapCoordinate.latitude];
-    content.longitude = [NSNumber numberWithDouble:touchMapCoordinate.longitude];
+    _photo.hasLocation = [NSNumber numberWithBool:YES];
+    _photo.latitude = [NSNumber numberWithDouble:touchMapCoordinate.latitude];
+    _photo.longitude = [NSNumber numberWithDouble:touchMapCoordinate.longitude];
     
     [self.mapView addAnnotation:annot];
     [_userAnnotation addObject:annot];
@@ -181,13 +181,13 @@
     
     CLLocationCoordinate2D coord = [self.mapView centerCoordinate];
     MKPointAnnotation *annot = [[MKPointAnnotation alloc] init];
-    annot.title = @"Image Location";
+    annot.title = @"Location";
     annot.coordinate = coord;
     annot.subtitle = [NSString stringWithFormat:@"φ:%.4f, λ:%.4f", coord.latitude, coord.longitude];
     
-    content.hasLocation = [NSNumber numberWithBool:YES];
-    content.latitude = [NSNumber numberWithDouble:coord.latitude];
-    content.longitude = [NSNumber numberWithDouble:coord.longitude];
+    _photo.hasLocation = [NSNumber numberWithBool:YES];
+    _photo.latitude = [NSNumber numberWithDouble:coord.latitude];
+    _photo.longitude = [NSNumber numberWithDouble:coord.longitude];
     
     [self.mapView addAnnotation:annot];
     [_userAnnotation addObject:annot];    
@@ -232,7 +232,7 @@
     
     if ([annotation isKindOfClass:[MKPointAnnotation class]])
     {
-        static NSString *locationAnnotationIdentifier = @"LocationPinAnnotationIdentifier";
+        static NSString *locationAnnotationIdentifier = @"LocationIdentifier";
         MKPinAnnotationView *pinView = (MKPinAnnotationView *)
         [mapView dequeueReusableAnnotationViewWithIdentifier:locationAnnotationIdentifier];
         
@@ -240,7 +240,8 @@
         {
             // if an existing pin view was not available, create one
             MKPinAnnotationView *customPinView = [[MKPinAnnotationView alloc]
-                                                  initWithAnnotation:annotation reuseIdentifier:locationAnnotationIdentifier];
+                                                  initWithAnnotation:annotation
+                                                  reuseIdentifier:locationAnnotationIdentifier];
             customPinView.pinColor = MKPinAnnotationColorRed;
             customPinView.animatesDrop = YES;
             customPinView.canShowCallout = YES;
