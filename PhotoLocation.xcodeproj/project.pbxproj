@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E809BA0816B12BEB0014E0CD /* redButton.png in Resources */ = {isa = PBXBuildFile; fileRef = E809BA0616B12BEB0014E0CD /* redButton.png */; };
+		E809BA0916B12BEB0014E0CD /* redButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E809BA0716B12BEB0014E0CD /* redButton@2x.png */; };
 		E88BE30E16AAF98A0065186B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E88BE30D16AAF98A0065186B /* UIKit.framework */; };
 		E88BE31016AAF98A0065186B /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E88BE30F16AAF98A0065186B /* Foundation.framework */; };
 		E88BE31216AAF98A0065186B /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E88BE31116AAF98A0065186B /* CoreGraphics.framework */; };
@@ -53,7 +55,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		E88BE30916AAF98A0065186B /* PhotoLocation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PhotoLocation.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E809BA0616B12BEB0014E0CD /* redButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = redButton.png; path = Icon/redButton.png; sourceTree = "<group>"; };
+		E809BA0716B12BEB0014E0CD /* redButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "redButton@2x.png"; path = "Icon/redButton@2x.png"; sourceTree = "<group>"; };
+		E88BE30916AAF98A0065186B /* GeoPhoto.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GeoPhoto.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E88BE30D16AAF98A0065186B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		E88BE30F16AAF98A0065186B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		E88BE31116AAF98A0065186B /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -159,7 +163,7 @@
 		E88BE30A16AAF98A0065186B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E88BE30916AAF98A0065186B /* PhotoLocation.app */,
+				E88BE30916AAF98A0065186B /* GeoPhoto.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -197,6 +201,8 @@
 				E88BE31716AAF98B0065186B /* PhotoLocation-Info.plist */,
 				E88BE31816AAF98B0065186B /* InfoPlist.strings */,
 				E88BE31B16AAF98C0065186B /* main.m */,
+				E809BA0616B12BEB0014E0CD /* redButton.png */,
+				E809BA0716B12BEB0014E0CD /* redButton@2x.png */,
 				E88BE38116AB08100065186B /* success.png */,
 				E88BE38216AB08100065186B /* success@2x.png */,
 				E88BE38316AB08100065186B /* target.png */,
@@ -362,7 +368,7 @@
 			);
 			name = GeoPhoto;
 			productName = PhotoLocation;
-			productReference = E88BE30916AAF98A0065186B /* PhotoLocation.app */;
+			productReference = E88BE30916AAF98A0065186B /* GeoPhoto.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -407,6 +413,8 @@
 				E88BE38716AB08100065186B /* target.png in Resources */,
 				E88BE38816AB08100065186B /* target@2x.png in Resources */,
 				E88BE39C16AB0A6B0065186B /* PhotoListController.xib in Resources */,
+				E809BA0816B12BEB0014E0CD /* redButton.png in Resources */,
+				E809BA0916B12BEB0014E0CD /* redButton@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

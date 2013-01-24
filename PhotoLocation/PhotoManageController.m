@@ -6,6 +6,7 @@
 //  Copyright (c) 2012年 Wu Wenzhi. All rights reserved.
 //
 
+#import <QuartzCore/QuartzCore.h>
 #import "PhotoManageController.h"
 
 #define BIG_CELL_HEIGHT 200.0
@@ -116,22 +117,30 @@
     if (previewMode)
     {
         self.navigationItem.rightBarButtonItem = self.editButtonItem;
+        //UISwitch *editSwitch = [[UISwitch alloc] init];
+        //[editSwitch addTarget:self action:@selector(switchChangeStatus:) forControlEvents:UIControlEventTouchUpInside];
+        //UIBarButtonItem *switchButton = [[UIBarButtonItem alloc] initWithCustomView:editSwitch];
+        //self.navigationItem.rightBarButtonItem = switchButton;
     }
     else
     {
         UIBarButtonItem *cameraButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCamera target:self action:@selector(showImageSelectionSheet)];
         UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(done)];
-        UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancel)];
-        self.navigationItem.rightBarButtonItems = [NSArray arrayWithObjects:doneButton, cameraButton, nil];
-        self.navigationItem.leftBarButtonItem = cancelButton;
+        self.navigationItem.rightBarButtonItem = doneButton;
+        self.navigationItem.leftBarButtonItem = cameraButton;
     }
 }
 
-- (void)cancel
+- (void)switchChangeStatus:(UISwitch *)sender
+{
+    [self setEditing:sender.isOn animated:YES];
+}
+
+- (void)showDeleteActionSheet
 {
     if (!self.cancelActionSheet)
     {
-        _cancelActionSheet = [[UIActionSheet alloc] initWithTitle:NSLocalizedString(@"Photo record will not be saved", @"Cancel warning") delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"OK" otherButtonTitles:nil];
+        _cancelActionSheet = [[UIActionSheet alloc] initWithTitle:previewMode ? NSLocalizedString(@"Photo record will be deleted", @"Delete photo") : NSLocalizedString(@"Photo record will not be saved", @"Not save photo") delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"OK" otherButtonTitles:nil];
     }
     [_cancelActionSheet showInView:self.view];
 }
@@ -160,9 +169,28 @@
     
     if (!editing)
     {
+        [self removeDeleteButton];
         [self savePhotoObject];
         [self allResignFirstResponse];
     }
+    else
+    {
+        [self addDeleteButton];
+    }
+}
+
+- (void)addDeleteButton
+{
+    [self.tableView beginUpdates];
+    [self.tableView insertSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationAutomatic];
+    [self.tableView endUpdates];
+}
+
+- (void)removeDeleteButton
+{
+    [self.tableView beginUpdates];
+    [self.tableView deleteSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationAutomatic];
+    [self.tableView endUpdates];
 }
 
 - (void)allResignFirstResponse
@@ -185,10 +213,61 @@
     [self allResignFirstResponse];
 }
 
+#pragma mark - Containers
+
+- (UITextField *)nameField
+{
+    if (!_nameField)
+    {
+        _nameField = [[UITextField alloc] initWithFrame:CGRectMake(80, 8, 225, 30)];
+        _nameField.delegate = self;
+        _nameField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+        _nameField.placeholder = @"e.g. Sai Kung";
+        _nameField.clearButtonMode = UITextFieldViewModeWhileEditing;
+        _nameField.textColor = [UIColor tableViewCellTextBlueColor];
+        _nameField.textAlignment = UITextAlignmentRight;
+        [_nameField setReturnKeyType:UIReturnKeyDone];
+        [_nameField addTarget:self action:@selector(textFieldFinished:) forControlEvents:UIControlEventEditingDidEndOnExit];
+        _nameField.enabled = !previewMode;
+    }
+    
+    return _nameField;
+}
+
+- (UITextView *)commentView
+{
+    if (!_commentView)
+    {
+        _commentView = [[UITextView alloc] initWithFrame:CGRectMake(12, 5, 295, 190)];
+        _commentView.backgroundColor = [UIColor tableViewCellBackgroundColor];
+        _commentView.delegate = self;
+        _commentView.textColor = [UIColor tableViewCellTextBlueColor];
+        [_commentView setReturnKeyType:UIReturnKeyDone];
+        [_commentView setFont:[UIFont systemFontOfSize:17.0]];
+        _commentView.scrollEnabled = YES;
+        
+        if (previewMode)
+        {
+            _commentView.editable = self.isEditing;
+        }
+        else
+        {
+            _commentView.editable = YES;
+        }
+    }
+    
+    return _commentView;
+}
+
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
+    if (!self.previewMode || self.isEditing)
+    {
+        return 4;
+    }
+    
     return 3;
 }
 
@@ -196,9 +275,9 @@
 {
     switch (section)
     {
-        case 0: return NSLocalizedString(@"Photo", @"Photo");
         case 1: return NSLocalizedString(@"Location", @"Location");
-        default: return NSLocalizedString(@"Comments", @"Comments");
+        case 2: return NSLocalizedString(@"Comments", @"Comments");
+        default: return nil;
     }
 }
 
@@ -209,27 +288,54 @@
         case 2: return NSLocalizedString(@"Typing symbols like '.', '!' or '?' can start a new paragraph.", @"Comment Tip");
         default: return nil;
     }
-    
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    NSArray *numberOfRows = [NSArray arrayWithObjects:
-                             [NSNumber numberWithInteger:2],
-                             [NSNumber numberWithInteger:1],
-                             [NSNumber numberWithInteger:1],
-                             nil];
+    NSArray *numberOfRows;
+    if (!self.previewMode || self.isEditing)
+    {
+        //last section is delete button
+        numberOfRows = [NSArray arrayWithObjects:
+                                [NSNumber numberWithInteger:2],
+                                [NSNumber numberWithInteger:1],
+                                [NSNumber numberWithInteger:1],
+                                [NSNumber numberWithInteger:1],
+                                nil];
+    }
+    else
+    {
+        numberOfRows = [NSArray arrayWithObjects:
+                                [NSNumber numberWithInteger:2],
+                                [NSNumber numberWithInteger:1],
+                                [NSNumber numberWithInteger:1],
+                                nil];
+    }
+    
     return [[numberOfRows objectAtIndex:section] integerValue];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSInteger section = indexPath.section;
-    switch (section)
+    if (!self.previewMode || self.isEditing)
     {
-        case 0: return [self cellForPhotoAttributeAtIndex:indexPath.row];
-        case 1: return [self cellForPhotoLocation];
-        default: return [self cellForPhotoComments];
+        switch (section)
+        {
+            case 0: return [self cellForPhotoAttributeAtIndex:indexPath.row];
+            case 1: return [self cellForPhotoLocation];
+            case 2: return [self cellForPhotoComments];
+            default: return [self cellForDeleteButton];
+        }
+    }
+    else
+    {
+        switch (section)
+        {
+            case 0: return [self cellForPhotoAttributeAtIndex:indexPath.row];
+            case 1: return [self cellForPhotoLocation];
+            default: return [self cellForPhotoComments];
+        }
     }
 }
 
@@ -247,16 +353,11 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {    
-    //select image cell
-    if (indexPath.section == 0)
+    switch (indexPath.section)
     {
-        if (indexPath.row == 1)
+        case 0:
         {
-            if (previewMode)
-            {
-                [self pushImagePreviewView];
-            }
-            else
+            if (indexPath.row == 1)
             {
                 if ([_photo.hasPhoto boolValue])
                 {
@@ -267,14 +368,23 @@
                     [self showImageSelectionSheet];
                 }
             }
+        } break;
+            
+        case 1:
+        {
+            [self pushLocationViewAllowEditing:previewMode];
+        } break;
+            
+        case 3:
+        {
+            [self showDeleteActionSheet];
         }
+            
+        default:
+            break;
     }
     
-    //select location cell
-    if (indexPath.section == 1)
-    {
-        [self pushLocationViewAllowEditing:previewMode];
-    }
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 - (void)showImageSelectionSheet
@@ -315,6 +425,20 @@
     [self.navigationController pushViewController:locationController animated:YES];
 }
 
+- (void)closePhotoManagerAndDeletePhotoObject
+{
+    [self deletePhotoObject];
+    
+    if (!previewMode)
+    {
+        [self dismissViewControllerAnimated:YES completion:nil];
+    }
+    else
+    {
+        [self.navigationController popViewControllerAnimated:YES];
+    }
+}
+
 #pragma mark - Prepare Preview
 
 - (void)prepareForPreviewPhoto
@@ -330,6 +454,33 @@
 }
 
 #pragma mark - Table Cells
+#warning manage delete button
+- (UITableViewCell *)cellForDeleteButton
+{
+    static NSString *cellID = @"DeleteCell";
+    UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:cellID];
+    
+    if (!cell)
+    {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
+        cell.selectionStyle = UITableViewCellSelectionStyleBlue;
+        
+        UIButton *deleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        
+        [deleteButton setTitle:NSLocalizedString(@"Delete", @"Delete") forState:UIControlStateNormal];
+        [deleteButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        deleteButton.titleLabel.font = [UIFont boldSystemFontOfSize:19];
+        deleteButton.titleLabel.shadowColor = [UIColor lightGrayColor];
+        deleteButton.titleLabel.shadowOffset = CGSizeMake(0, -1);
+        [deleteButton setFrame:CGRectMake(9.5, 0.5, 301.0, 45.0)];
+        [deleteButton setBackgroundImage:[[UIImage imageNamed:@"redButton"] stretchableImageWithLeftCapWidth:10.0 topCapHeight:0.0] forState:UIControlStateNormal];
+        
+        [deleteButton addTarget:self action:@selector(showDeleteActionSheet) forControlEvents:UIControlEventTouchUpInside];
+        [cell addSubview:deleteButton];
+    }
+    
+    return cell;
+}
 
 - (UITableViewCell *)cellForPhotoAttributeAtIndex:(NSInteger)index
 {
@@ -350,24 +501,10 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:cellID];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         cell.textLabel.text = NSLocalizedString(@"Name", @"Name");
-    }
-    
-    if (!self.nameField)
-    {
-        self.nameField = [[UITextField alloc] initWithFrame:CGRectMake(80, 8, 225, 30)];
-        _nameField.delegate = self;
-        _nameField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-        _nameField.placeholder = @"e.g. Sai Kung";
-        _nameField.clearButtonMode = UITextFieldViewModeWhileEditing;
-        _nameField.textColor = [UIColor tableViewCellTextBlueColor];
-        _nameField.textAlignment = UITextAlignmentRight;
-        [_nameField setReturnKeyType:UIReturnKeyDone];
-        [_nameField addTarget:self action:@selector(textFieldFinished:) forControlEvents:UIControlEventEditingDidEndOnExit];
-        self.nameField.enabled = !previewMode;
+        [cell addSubview:self.nameField];
     }
     
     _nameField.text = _photo.name;
-    [cell addSubview:self.nameField];
     
     return cell;
 }
@@ -409,24 +546,6 @@
     {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
-        
-        self.commentView = [[UITextView alloc] initWithFrame:CGRectMake(12, 5, 295, 190)];
-        _commentView.backgroundColor = [UIColor tableViewCellBackgroundColor];
-        _commentView.delegate = self;
-        _commentView.textColor = [UIColor tableViewCellTextBlueColor];
-        [_commentView setReturnKeyType:UIReturnKeyDone];
-        [_commentView setFont:[UIFont systemFontOfSize:17.0]];
-        _commentView.scrollEnabled = YES;
-        
-        if (previewMode)
-        {
-            self.commentView.editable = self.tableView.isEditing;
-        }
-        else
-        {
-            self.commentView.editable = YES;
-        }
-        
         [cell addSubview:self.commentView];
     }
     
@@ -498,16 +617,24 @@
 
 - (BOOL)enableEnterKeyForTextView:(UITextView *)view
 {
-    if ([view.text hasSuffix:@"."] || [view.text hasSuffix:@"。"]) {
+    if ([view.text hasSuffix:@"."] || [view.text hasSuffix:@"。"])
+    {
         return YES;
     }
-    if ([view.text hasSuffix:@"?"] || [view.text hasSuffix:@"？"]) {
+    if ([view.text hasSuffix:@"?"] || [view.text hasSuffix:@"？"])
+    {
         return YES;
     }
-    if ([view.text hasSuffix:@"!"] || [view.text hasSuffix:@"！"]) {
+    if ([view.text hasSuffix:@"!"] || [view.text hasSuffix:@"！"])
+    {
         return YES;
     }
-    if ([view.text hasSuffix:@"~"] || [view.text hasSuffix:@"～"]) {
+    if ([view.text hasSuffix:@"~"] || [view.text hasSuffix:@"～"])
+    {
+        return YES;
+    }
+    if ([view.text hasSuffix:@","] || [view.text hasSuffix:@"，"])
+    {
         return YES;
     }
     
@@ -518,7 +645,8 @@
 {
     if ([text isEqualToString:@"\n"])
     {
-        if (![self enableEnterKeyForTextView:textView]) {
+        if (![self enableEnterKeyForTextView:textView])
+        {
             [textView resignFirstResponder];
             // Return FALSE so that the final '\n' character doesn't get added
             return NO;
@@ -542,11 +670,13 @@
     {
         switch (buttonIndex)
         {
-            case 0: {
+            case 0:
+            {
                 [self useCamera];
             } break;
                 
-            case 1: {
+            case 1:
+            {
                 [self usePhotoAlbum];
             } break;
                 
@@ -560,9 +690,9 @@
     {
         switch (buttonIndex)
         {
-            case 0:{
-                [self deletePhotoObject];
-                [self dismissModalViewControllerAnimated:YES];
+            case 0:
+            {
+                [self closePhotoManagerAndDeletePhotoObject];
             } break;
                 
             default:

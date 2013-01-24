@@ -291,16 +291,20 @@
     [UIView setAnimationTransition:UIViewAnimationTransitionCurlUp forView:self.mapView cache:YES];
     [UIView commitAnimations];
     
-    switch (index) {
-        case 0: {
+    switch (index)
+    {
+        case 0:
+        {
             self.mapView.mapType = MKMapTypeStandard;
         } break;
             
-        case 1: {
+        case 1:
+        {
             self.mapView.mapType = MKMapTypeSatellite;
         } break;
             
-        default: {
+        default:
+        {
             self.mapView.mapType = MKMapTypeHybrid;
         } break;
     }
